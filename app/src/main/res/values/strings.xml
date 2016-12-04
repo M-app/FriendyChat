@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FriendlyChat</string>
+    
+    <string name="send_button_label">Enviar</string>
+
+    <string name="sign_out">Cerrar Sesión</string>
+</resources>
