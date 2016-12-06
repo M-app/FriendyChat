@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.0"
@@ -29,5 +33,11 @@ dependencies {
 
     // Displaying images
     compile 'com.github.bumptech.glide:glide:3.6.1'
+
+    compile 'com.google.firebase:firebase-database:10.0.1'
+    compile 'com.google.firebase:firebase-auth:10.0.1'
+    compile 'com.firebaseui:firebase-ui-auth:1.0.1'
+
     testCompile 'junit:junit:4.12'
 }
+apply plugin: 'com.google.gms.google-services'

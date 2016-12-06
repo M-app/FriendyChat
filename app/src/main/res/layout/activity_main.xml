@@ -10,16 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.upvhas.friendlychat.MainActivity">
 
-    <ListView
-        android:id="@+id/messagesListView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/linear_layout"
-        android:divider="@android:color/transparent"
-        android:stackFromBottom="true"
-        android:transcriptMode="alwaysScroll"
-        tools:listitem="@layout/item_message"></ListView>
-
     <LinearLayout
         android:id="@+id/linear_layout"
         android:layout_width="match_parent"
@@ -51,6 +41,16 @@
             android:text="@string/send_button_label" />
 
     </LinearLayout>
+
+    <ListView
+        android:id="@+id/messagesListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/linear_layout"
+        android:divider="@android:color/transparent"
+        android:stackFromBottom="true"
+        android:transcriptMode="alwaysScroll"
+        tools:listitem="@layout/item_message"></ListView>
 
     <ProgressBar
         android:id="@+id/progressBar"

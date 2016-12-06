@@ -4,4 +4,6 @@
     <string name="send_button_label">Enviar</string>
 
     <string name="sign_out">Cerrar Sesión</string>
+
+    <string name="photo_picker_dialog">Completar la acción utilizando</string>
 </resources>
