@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,6 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,13 +30,17 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -43,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String ANONYMOUS = "anonymous";
     public static final int MESSAGES_LENGHT_LIMIT = 1000;
+    public static final String MSG_LENGHT_VALUE_REMOTE_CONFIG = "friendly_msg_lenght";
 
     private MessageAdapter mMessageAdapter;
     private ListView mMessageListView;
@@ -61,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private FirebaseStorage mFirebaseStorage;
     private StorageReference mChatPhotoStorageRefence;
+    private FirebaseRemoteConfig mFirebaseRemoteConfig;
 
     // integer for statActivityForResult in firebase ui
     private static final int RC_SIGN_IN = 123;
@@ -79,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseStorage = FirebaseStorage.getInstance();
+        mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
 
         // getReference() -> reference to the root of the database
         mMessagesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
@@ -167,6 +176,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        FirebaseRemoteConfigSettings remoteSettings = new FirebaseRemoteConfigSettings.Builder()
+                .setDeveloperModeEnabled(BuildConfig.DEBUG)
+                .build();
+        mFirebaseRemoteConfig.setConfigSettings(remoteSettings);
+        Map<String,Object> mapConfig = new HashMap<>();
+        mapConfig.put(MSG_LENGHT_VALUE_REMOTE_CONFIG,MESSAGES_LENGHT_LIMIT);
+        mFirebaseRemoteConfig.setDefaults(mapConfig);
+        fetchConfig();
     } // -> end onCreate
 
     @Override
@@ -267,5 +284,33 @@ public class MainActivity extends AppCompatActivity {
             mMessagesDatabaseReference.removeEventListener(mChildEventListener);
             mChildEventListener = null;
         }
+    }
+
+    private void fetchConfig() {
+        long cacheExpiration = 3600;
+        if(mFirebaseRemoteConfig.getInfo().getConfigSettings().isDeveloperModeEnabled()){
+            cacheExpiration = 0;
+        }
+        mFirebaseRemoteConfig.fetch(cacheExpiration)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        mFirebaseRemoteConfig.activateFetched();
+                        applyRetrievedLenghtLimit();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG,"Error fetching config!");
+                        applyRetrievedLenghtLimit();
+                    }
+                });
+    }
+
+    private void applyRetrievedLenghtLimit() {
+        Long friendly_msg_lenght = mFirebaseRemoteConfig.getLong(MSG_LENGHT_VALUE_REMOTE_CONFIG);
+        mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(friendly_msg_lenght.intValue())});
+        Log.d(TAG,MSG_LENGHT_VALUE_REMOTE_CONFIG + " = " + friendly_msg_lenght);
     }
 }
